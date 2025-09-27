@@ -2,7 +2,8 @@
 """Unit tests for the utils module functions.
 
 This module contains unit tests for utility functions including
-access_nested_map and get_json, leveraging unittest.mock for isolation.
+access_nested_map, get_json, and memoize, leveraging unittest.mock
+for isolation and parameterized for data-driven testing.
 """
 import unittest
 from parameterized import parameterized
@@ -10,7 +11,7 @@ from typing import Mapping, Sequence, Any, Dict
 from unittest.mock import patch, Mock
 
 # Assuming utils.py is in the same directory
-from utils import access_nested_map, get_json
+from utils import access_nested_map, get_json, memoize
 
 
 class TestAccessNestedMap(unittest.TestCase):
@@ -71,6 +72,7 @@ class TestGetJson(unittest.TestCase):
         # Configure the Mock object returned by the patched requests.get
         # to have a .json() method that returns the test_payload.
         mock_get.return_value.json.return_value = test_payload
+        mock_get.return_value.raise_for_status.return_value = None  # Ensure no HTTP errors
 
         # Call the function under test
         result = get_json(test_url)
@@ -80,3 +82,42 @@ class TestGetJson(unittest.TestCase):
 
         # Test 2: Assert the output of get_json is equal to the expected payload
         self.assertEqual(result, test_payload)
+
+
+class TestMemoize(unittest.TestCase):
+    """Tests the memoize decorator functionality.
+
+    Verifies that a method decorated with @memoize is only executed once,
+    even when the property is accessed multiple times.
+    """
+
+    def test_memoize(self) -> None:
+        """Tests that a method decorated with @memoize is called once when accessed twice."""
+        
+        # 1. Define the required TestClass internally
+        class TestClass:
+            """Test class for demonstrating and testing memoize decorator."""
+
+            def a_method(self) -> int:
+                """Method to be mocked and checked for call count."""
+                return 42
+
+            @memoize
+            def a_property(self) -> int:
+                """A memoized property that calls a_method."""
+                return self.a_method()
+
+        # 2. Patch the method that should only be called once: a_method
+        with patch.object(TestClass, 'a_method', return_value=42) as mock_a_method:
+            
+            # 3. Instantiate the TestClass
+            test_instance = TestClass()
+
+            # 4. Access the property twice
+            result1 = test_instance.a_property
+            result2 = test_instance.a_property
+
+            # 5. Assert the result and the call count
+            self.assertEqual(result1, 42)
+            self.assertEqual(result2, 42)
+            mock_a_method.assert_called_once()
