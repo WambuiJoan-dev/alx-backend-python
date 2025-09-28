@@ -8,7 +8,7 @@ urlpatterns = [
     # API Routes (v1)
     # --------------------------------------------------------------------------
     # Use 'include' as requested by the checker
-    path('api/v1/chats/', include('chats.urls')), 
+    path('api/', include('chats.urls')), 
     
     # Include DRF's authentication views for login/logout (optional but useful)
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
