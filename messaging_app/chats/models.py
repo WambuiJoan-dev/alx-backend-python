@@ -21,6 +21,7 @@ class User(AbstractUser, PermissionsMixin):
         default=uuid.uuid4,
         editable=False,
         verbose_name="User ID"
+        
     )
     
     # Redefine username field to use email for login (Django best practice for web apps)
@@ -61,6 +62,8 @@ class User(AbstractUser, PermissionsMixin):
 
     # Set email as the unique identifier field 
     email = models.EmailField(unique=True) 
+
+    password = models.CharField(max_length=128, null=True, blank=True)
 
     def __str__(self):
         return self.email
