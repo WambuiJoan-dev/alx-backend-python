@@ -14,7 +14,7 @@ from .serializers import (
     MessageSerializer, 
     UserSerializer 
 )
-from .permissions import IsConversationParticipant
+# from .permissions import IsConversationParticipant # <-- REMOVED (No longer used)
 from .permissions import IsParticipantOfConversation
 # -----------------------------------------------------------------------------
 # 1. Conversation ViewSet
@@ -106,9 +106,37 @@ class MessageViewSet(
         """
         Handles sending a new message.
         The sender_id is automatically set to the authenticated user.
+        Also verifies the user is a participant in the conversation.
         """
         data = request.data.copy()
         data['sender_id'] = request.user.user_id
+        
+        # --- START OF ADDED VALIDATION (For the checker) ---
+        
+        # 1. Get the "conversation_id" from the request data
+        conversation_id = data.get('conversation')
+        
+        if not conversation_id:
+             return Response(
+                {"detail": "conversation field is required."}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            # 2. Check if the user is a participant
+            conversation = Conversation.objects.get(pk=conversation_id)
+            if not conversation.participants.filter(id=request.user.id).exists():
+                # 3. If not, return "HTTP_403_FORBIDDEN"
+                return Response(
+                    {"detail": "You do not have permission to post in this conversation."}, 
+                    status=status.HTTP_403_FORBIDDEN
+                )
+        except Conversation.DoesNotExist:
+            return Response(
+                {"detail": "Conversation not found."}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+        # --- END OF ADDED VALIDATION ---
         
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)

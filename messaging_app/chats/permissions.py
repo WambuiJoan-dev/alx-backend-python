@@ -21,7 +21,7 @@ class IsParticipantOfConversation(BasePermission):
     def has_object_permission(self, request, view, obj):
         """
         Check 2: Allow only participants to view/edit.
-        This is called for detail views (GET, PUT, DELETE on /conversations/1/)
+        This is called for detail views (GET, PUT, PATCH, DELETE on /conversations/1/)
         """
         
         # If the object is a Conversation
