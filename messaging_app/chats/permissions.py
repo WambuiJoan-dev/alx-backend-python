@@ -1,20 +1,29 @@
 # messaging_app/chats/permissions.py
 
 from rest_framework.permissions import BasePermission
-from rest_framework import permissions
 from .models import Conversation, Message
 
-class IsConversationParticipant(BasePermission):
+class IsParticipantOfConversation(BasePermission):
     """
-    Custom permission to only allow participants of a conversation
-    to access its details and messages.
+    Custom permission to:
+    1. Only allow authenticated users.
+    2. Only allow participants of a conversation to access it or its messages.
     """
+
+    def has_permission(self, request, view):
+        """
+        Check 1: Allow only authenticated users.
+        This is technically redundant if IsAuthenticated is global,
+        but it's good practice.
+        """
+        return request.user and request.user.is_authenticated
 
     def has_object_permission(self, request, view, obj):
-        # The user must be authenticated to even check object permissions
-        if not request.user.is_authenticated:
-            return False
-
+        """
+        Check 2: Allow only participants to view/edit.
+        This is called for detail views (GET, PUT, DELETE on /conversations/1/)
+        """
+        
         # If the object is a Conversation
         if isinstance(obj, Conversation):
             # Check if the user is in the 'participants' list

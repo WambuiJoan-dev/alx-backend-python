@@ -15,6 +15,7 @@ from .serializers import (
     UserSerializer 
 )
 from .permissions import IsConversationParticipant
+from .permissions import IsParticipantOfConversation
 # -----------------------------------------------------------------------------
 # 1. Conversation ViewSet
 # -----------------------------------------------------------------------------
@@ -28,7 +29,7 @@ class ConversationViewSet(viewsets.ModelViewSet):
     """
     
 
-    permission_classes = [IsAuthenticated, IsConversationParticipant]
+    permission_classes = [IsParticipantOfConversation]
     serializer_class = ConversationSerializer
     
     # --- FILTERING CONFIGURATION ---
@@ -82,7 +83,7 @@ class MessageViewSet(
     within a specific conversation.
     """
 
-    permission_classes = [IsAuthenticated, IsConversationParticipant]
+    permission_classes = [IsParticipantOfConversation]
     serializer_class = MessageSerializer
     # --- FILTERING CONFIGURATION ---
     # Allow filtering messages by the conversation they belong to
