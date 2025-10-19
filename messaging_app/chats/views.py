@@ -14,7 +14,7 @@ from .serializers import (
     MessageSerializer, 
     UserSerializer 
 )
-
+from .permissions import IsConversationParticipant
 # -----------------------------------------------------------------------------
 # 1. Conversation ViewSet
 # -----------------------------------------------------------------------------
@@ -27,10 +27,11 @@ class ConversationViewSet(viewsets.ModelViewSet):
     - create: Start a new conversation (requires participant IDs).
     """
     
-    permission_classes = [IsAuthenticated]
+
+    permission_classes = [IsAuthenticated, IsConversationParticipant]
     serializer_class = ConversationSerializer
     
-    # --- ADDED FILTERING CONFIGURATION ---
+    # --- FILTERING CONFIGURATION ---
     filter_backends = [DjangoFilterBackend]
     # Allow filtering conversations by participant ID (e.g., to find chats with a specific user)
     filterset_fields = ['participants'] 
@@ -80,10 +81,10 @@ class MessageViewSet(
     Provides endpoints for creating (sending) a new message and listing messages 
     within a specific conversation.
     """
-    permission_classes = [IsAuthenticated]
-    serializer_class = MessageSerializer
 
-    # --- ADDED FILTERING CONFIGURATION ---
+    permission_classes = [IsAuthenticated, IsConversationParticipant]
+    serializer_class = MessageSerializer
+    # --- FILTERING CONFIGURATION ---
     # Allow filtering messages by the conversation they belong to
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['conversation']
@@ -91,10 +92,14 @@ class MessageViewSet(
     
     def get_queryset(self):
         """
-        Filters messages by the conversation_id passed in the URL (optional but good practice).
+        Filters messages to only include those from conversations
+        the user is a participant in.
         """
-        # If running nested, this would filter by the parent conversation ID
-        return Message.objects.all().order_by('sent_at')
+        # Filter queryset by user
+        user = self.request.user
+        return Message.objects.filter(
+            conversation__participants=user
+        ).order_by('sent_at')
 
     def create(self, request, *args, **kwargs):
         """
