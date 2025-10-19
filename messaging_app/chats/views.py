@@ -16,6 +16,8 @@ from .serializers import (
 )
 # from .permissions import IsConversationParticipant # <-- REMOVED (No longer used)
 from .permissions import IsParticipantOfConversation
+from .pagination import MessagePagination
+from .filters import MessageFilter
 # -----------------------------------------------------------------------------
 # 1. Conversation ViewSet
 # -----------------------------------------------------------------------------
@@ -87,6 +89,7 @@ class MessageViewSet(
     serializer_class = MessageSerializer
     # --- FILTERING CONFIGURATION ---
     # Allow filtering messages by the conversation they belong to
+    pagination_class = MessagePagination
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['conversation']
     # -------------------------------------
