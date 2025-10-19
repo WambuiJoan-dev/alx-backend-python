@@ -26,7 +26,7 @@ SECRET_KEY = 'n5$x*!-#$3^mm7g#r-$dy*n1r3vn=y53o%^*k-nhb*gwewc3w1'
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
+rest_framework.authentication.BasicAuthentication
 
 # Application definition
 
